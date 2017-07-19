@@ -1,9 +1,9 @@
-from __future__ import print_function
+#!/usr/bin/env python3
 
+import glob
 import os
 import numpy as np
-
-from skimage.io import imsave, imread
+from scipy.misc import imread
 
 data_path = '/mnt/VirtualBox/project_joel/data_joel/png/ED/'
 
@@ -21,9 +21,10 @@ def create_data(images, suffix):
     print('Creating %sing images...'% suffix)
     print('-'*30)
     for i, image_name in enumerate(images):
-        image_mask_name = image_name.split('_')[0] + '_4CH_segmentation_ED.png'
-        img = imread(os.path.join(data_path, image_name), as_grey=True)
-        img_mask = imread(os.path.join(data_path, image_mask_name), as_grey=True)
+        print(image_name)
+        image_mask_name = os.path.basename(image_name).split('_')[0] + '_4CH_segmentation_ED.png'
+        img = imread(image_name)
+        img_mask = imread(os.path.join(data_path, image_mask_name))
 
         img = np.array([img])
         img_mask = np.array([img_mask])
@@ -51,7 +52,8 @@ def load_test_data():
     return imgs_test, imgs_id
 
 if __name__ == '__main__':
-    images = os.glob("*4CH_ED.png")
-    train_n = len(images) * 0.8
+    images = glob.glob(os.path.join(data_path, "*4CH_ED.png"))
+    print("Preparing to read %d images" % len(images))
+    train_n = int(len(images) * 0.8)
     create_data(images[:train_n], 'train')
     create_data(images[train_n:], 'test')
