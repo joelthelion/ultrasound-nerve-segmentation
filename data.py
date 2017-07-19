@@ -2,6 +2,7 @@
 
 import glob
 import os
+import pickle
 import numpy as np
 from scipy.misc import imread
 
@@ -20,9 +21,12 @@ def create_data(images, suffix):
     print('-'*30)
     print('Creating %sing images...'% suffix)
     print('-'*30)
+    ids = []
     for i, image_name in enumerate(images):
         print(image_name)
-        image_mask_name = os.path.basename(image_name).split('_')[0] + '_4CH_segmentation_ED.png'
+        image_id = os.path.basename(image_name).split('_')[0]
+        ids.append(image_id)
+        image_mask_name = image_id + '_4CH_segmentation_ED.png'
         img = imread(image_name)
         img_mask = imread(os.path.join(data_path, image_mask_name))
         img_mask = img_mask == 1
@@ -39,6 +43,7 @@ def create_data(images, suffix):
 
     np.save('imgs_%s.npy'%suffix, imgs)
     np.save('imgs_mask_%s.npy'%suffix, imgs_mask)
+    pickle.dump(ids, open("imgs_ids_%s.pck"%suffix,"wb"))
     print('Saving to .npy files done.')
 
 
@@ -49,7 +54,7 @@ def load_train_data():
 
 def load_test_data():
     imgs_test = np.load('imgs_test.npy')
-    imgs_id = np.load('imgs_id_test.npy')
+    imgs_id = pickle.load(open('./imgs_ids_test.pck','rb'))
     return imgs_test, imgs_id
 
 if __name__ == '__main__':
