@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 
 import os
-from skimage.transform import resize
-from skimage.io import imsave
+from scipy.misc import imsave
 import numpy as np
 from keras.models import Model
 from keras.layers import Input, concatenate, Conv2D, MaxPooling2D, Conv2DTranspose
@@ -78,11 +77,7 @@ def get_unet():
 
 
 def preprocess(imgs):
-    imgs_p = np.ndarray((imgs.shape[0], img_rows, img_cols), dtype=np.uint8)
-    for i in range(imgs.shape[0]):
-        imgs_p[i] = resize(imgs[i], (img_cols, img_rows), preserve_range=True)
-
-    imgs_p = imgs_p[..., np.newaxis]
+    imgs_p = imgs[..., np.newaxis]
     return imgs_p
 
 

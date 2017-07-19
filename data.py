@@ -5,7 +5,7 @@ import os
 import numpy as np
 from scipy.misc import imread
 
-data_path = '/mnt/VirtualBox/project_joel/data_joel/png/ED/'
+data_path = './datadir'
 
 image_rows = 96
 image_cols = 96
@@ -25,6 +25,7 @@ def create_data(images, suffix):
         image_mask_name = os.path.basename(image_name).split('_')[0] + '_4CH_segmentation_ED.png'
         img = imread(image_name)
         img_mask = imread(os.path.join(data_path, image_mask_name))
+        img_mask = img_mask == 1
 
         img = np.array([img])
         img_mask = np.array([img_mask])
