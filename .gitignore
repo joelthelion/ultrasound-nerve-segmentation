@@ -2,3 +2,7 @@
 *.npy
 *.csv
 *.hdf5
+*.h5
+*.png
+datadir
+*.pck

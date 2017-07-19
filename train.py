@@ -71,7 +71,7 @@ def get_unet():
 
     model = Model(inputs=[inputs], outputs=[conv10])
 
-    model.compile(optimizer=Adam(lr=1e-5), loss=dice_coef_loss, metrics=[dice_coef])
+    model.compile(optimizer=Adam(lr=5e-5), loss=dice_coef_loss, metrics=[dice_coef])
 
     return model
 
@@ -86,6 +86,8 @@ def train_and_predict():
     print('Loading and preprocessing train data...')
     print('-'*30)
     imgs_train, imgs_mask_train = load_train_data()
+    # imgs_train = imgs_train[:32]
+    # imgs_mask_train = imgs_mask_train[:32]
 
     imgs_train = preprocess(imgs_train)
     imgs_mask_train = preprocess(imgs_mask_train)
@@ -108,7 +110,7 @@ def train_and_predict():
     print('-'*30)
     print('Fitting model...')
     print('-'*30)
-    model.fit(imgs_train, imgs_mask_train, batch_size=32, epochs=1, verbose=1, shuffle=True,
+    model.fit(imgs_train, imgs_mask_train, batch_size=32, epochs=100, verbose=1, shuffle=True,
               validation_split=0.2,
               callbacks=[model_checkpoint])
 
