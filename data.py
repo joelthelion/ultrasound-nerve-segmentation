@@ -41,6 +41,9 @@ def create_data(images, suffix):
             print('Done: {0}/{1} images'.format(i, total))
     print('Loading done.')
 
+    imgs = imgs.astype('float32')
+    imgs_mask = imgs_mask.astype('float32')
+
     np.save('imgs_%s.npy'%suffix, imgs)
     np.save('imgs_mask_%s.npy'%suffix, imgs_mask)
     pickle.dump(ids, open("imgs_ids_%s.pck"%suffix,"wb"))
@@ -54,8 +57,9 @@ def load_train_data():
 
 def load_test_data():
     imgs_test = np.load('imgs_test.npy')
+    imgs_mask_test = np.load('imgs_mask_test.npy')
     imgs_id = pickle.load(open('./imgs_ids_test.pck','rb'))
-    return imgs_test, imgs_id
+    return imgs_test, imgs_mask_test, imgs_id
 
 if __name__ == '__main__':
     images = glob.glob(os.path.join(data_path, "*4CH_ED.png"))

@@ -92,18 +92,26 @@ def train_and_predict():
     imgs_train = preprocess(imgs_train)
     imgs_mask_train = preprocess(imgs_mask_train)
 
-    imgs_train = imgs_train.astype('float32')
     mean = np.mean(imgs_train)  # mean for data centering
     std = np.std(imgs_train)  # std for data normalization
 
     imgs_train -= mean
     imgs_train /= std
 
-    imgs_mask_train = imgs_mask_train.astype('float32')
+    print('-'*30)
+    print('Loading and preprocessing test data...')
+    print('-'*30)
+    imgs_test, imgs_mask_test, imgs_id_test = load_test_data()
+    imgs_test = preprocess(imgs_test)
+    imgs_mask_test = preprocess(imgs_mask_test)
+
+    imgs_test -= mean
+    imgs_test /= std
 
     print('-'*30)
     print('Creating and compiling model...')
     print('-'*30)
+
     model = get_unet()
     model_checkpoint = ModelCheckpoint('weights.h5', monitor='val_loss', save_best_only=True)
 
@@ -111,18 +119,8 @@ def train_and_predict():
     print('Fitting model...')
     print('-'*30)
     model.fit(imgs_train, imgs_mask_train, batch_size=32, epochs=100, verbose=1, shuffle=True,
-              validation_split=0.2,
+              validation_data=(imgs_test, imgs_mask_test),
               callbacks=[model_checkpoint])
-
-    print('-'*30)
-    print('Loading and preprocessing test data...')
-    print('-'*30)
-    imgs_test, imgs_id_test = load_test_data()
-    imgs_test = preprocess(imgs_test)
-
-    imgs_test = imgs_test.astype('float32')
-    imgs_test -= mean
-    imgs_test /= std
 
     print('-'*30)
     print('Loading saved weights...')
