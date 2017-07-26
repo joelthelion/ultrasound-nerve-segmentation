@@ -85,7 +85,7 @@ def train_and_predict():
     print('-'*30)
     print('Loading and preprocessing train data...')
     print('-'*30)
-    imgs_train, imgs_mask_train = load_train_data()
+    imgs_train, imgs_mask_train, imgs_label_train = load_train_data()
     # imgs_train = imgs_train[:32]
     # imgs_mask_train = imgs_mask_train[:32]
 
@@ -101,7 +101,7 @@ def train_and_predict():
     print('-'*30)
     print('Loading and preprocessing test data...')
     print('-'*30)
-    imgs_test, imgs_mask_test, imgs_id_test = load_test_data()
+    imgs_test, imgs_mask_test, imgs_label_test, imgs_id_test = load_test_data()
     imgs_test = preprocess(imgs_test)
     imgs_mask_test = preprocess(imgs_mask_test)
 
