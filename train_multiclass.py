@@ -5,6 +5,7 @@ from scipy.misc import imsave
 import numpy as np
 from keras.models import Model
 from keras.layers import Input, concatenate, Conv2D, MaxPooling2D, Conv2DTranspose
+from keras.utils import np_utils
 from keras.optimizers import Adam
 from keras.callbacks import ModelCheckpoint
 from keras import backend as K
@@ -16,18 +17,17 @@ K.set_image_data_format('channels_last')  # TF dimension ordering in this code
 img_rows = 96
 img_cols = 96
 
-smooth = 1.
+# smooth = 1.
+
+# def dice_coef(y_true, y_pred):
+#     y_true_f = K.flatten(y_true)
+#     y_pred_f = K.flatten(y_pred)
+#     intersection = K.sum(y_true_f * y_pred_f)
+#     return (2. * intersection + smooth) / (K.sum(y_true_f) + K.sum(y_pred_f) + smooth)
 
 
-def dice_coef(y_true, y_pred):
-    y_true_f = K.flatten(y_true)
-    y_pred_f = K.flatten(y_pred)
-    intersection = K.sum(y_true_f * y_pred_f)
-    return (2. * intersection + smooth) / (K.sum(y_true_f) + K.sum(y_pred_f) + smooth)
-
-
-def dice_coef_loss(y_true, y_pred):
-    return -dice_coef(y_true, y_pred)
+# def dice_coef_loss(y_true, y_pred):
+#     return -dice_coef(y_true, y_pred)
 
 
 def get_unet():
@@ -67,11 +67,11 @@ def get_unet():
     conv9 = Conv2D(32, (3, 3), activation='relu', padding='same')(up9)
     conv9 = Conv2D(32, (3, 3), activation='relu', padding='same')(conv9)
 
-    conv10 = Conv2D(1, (1, 1), activation='sigmoid')(conv9)
+    conv10 = Conv2D(4, (1, 1), activation='softmax')(conv9)
 
     model = Model(inputs=[inputs], outputs=[conv10])
 
-    model.compile(optimizer=Adam(lr=5e-5), loss=dice_coef_loss, metrics=[dice_coef])
+    model.compile(optimizer=Adam(lr=5e-5), loss="categorical_crossentropy", metrics=[])
 
     return model
 
@@ -87,10 +87,12 @@ def train_and_predict():
     print('-'*30)
     imgs_train, imgs_mask_train, imgs_label_train = load_train_data()
     # imgs_train = imgs_train[:32]
-    # imgs_mask_train = imgs_mask_train[:32]
+    # imgs_label_train = imgs_label_train[:32]
 
     imgs_train = preprocess(imgs_train)
-    imgs_mask_train = preprocess(imgs_mask_train)
+    imgs_label_train = preprocess(imgs_label_train)
+    imgs_label_train = np_utils.to_categorical(imgs_label_train)
+    imgs_label_train = imgs_label_train.reshape((280,96,96,4))
 
     mean = np.mean(imgs_train)  # mean for data centering
     std = np.std(imgs_train)  # std for data normalization
@@ -103,7 +105,9 @@ def train_and_predict():
     print('-'*30)
     imgs_test, imgs_mask_test, imgs_label_test, imgs_id_test = load_test_data()
     imgs_test = preprocess(imgs_test)
-    imgs_mask_test = preprocess(imgs_mask_test)
+    imgs_label_test = preprocess(imgs_label_test)
+    imgs_label_test = np_utils.to_categorical(imgs_label_test)
+    imgs_label_test = imgs_label_test.reshape((70,96,96,4))
 
     imgs_test -= mean
     imgs_test /= std
@@ -118,8 +122,8 @@ def train_and_predict():
     print('-'*30)
     print('Fitting model...')
     print('-'*30)
-    model.fit(imgs_train, imgs_mask_train, batch_size=32, epochs=100, verbose=1, shuffle=True,
-              validation_data=(imgs_test, imgs_mask_test),
+    model.fit(imgs_train, imgs_label_train, batch_size=32, epochs=100, verbose=1, shuffle=True,
+              validation_data=(imgs_test, imgs_label_test),
               callbacks=[model_checkpoint])
 
     print('-'*30)
@@ -128,13 +132,13 @@ def train_and_predict():
     model.load_weights('weights.h5')
 
     print('-'*30)
-    print('Predicting masks on test data...')
+    print('Predicting labels on test data...')
     print('-'*30)
     predicted = model.predict(imgs_test, verbose=1)
-    np.save('predicted.npy', imgs_mask_test)
+    np.save('predicted.npy', predicted)
 
     print('-' * 30)
-    print('Saving predicted masks to files...')
+    print('Saving predicted labels to files...')
     print('-' * 30)
     pred_dir = 'preds'
     if not os.path.exists(pred_dir):

@@ -17,6 +17,7 @@ def create_data(images, suffix):
 
     imgs = np.ndarray((total, image_rows, image_cols), dtype=np.uint8)
     imgs_mask = np.ndarray((total, image_rows, image_cols), dtype=np.uint8)
+    imgs_label = np.ndarray((total, image_rows, image_cols), dtype=np.uint8)
 
     print('-'*30)
     print('Creating %sing images...'% suffix)
@@ -28,21 +29,28 @@ def create_data(images, suffix):
         ids.append(image_id)
         image_mask_name = image_id + '_4CH_segmentation_ED.png'
         img = imread(image_name)
-        img_mask = imread(os.path.join(data_path, image_mask_name))
-        img_mask = img_mask == 1
+        img_label = imread(os.path.join(data_path, image_mask_name))
+        img_mask = img_label == 1
 
         img = np.array([img])
+        img_label = np.array([img_label])
         img_mask = np.array([img_mask])
 
         imgs[i] = img
         imgs_mask[i] = img_mask
+        imgs_label[i] = img_label
 
         if i % 100 == 0:
             print('Done: {0}/{1} images'.format(i, total))
     print('Loading done.')
 
+    imgs = imgs.astype('float32')
+    imgs_mask = imgs_mask.astype('float32')
+    imgs_label = imgs_label.astype('float32')
+
     np.save('imgs_%s.npy'%suffix, imgs)
     np.save('imgs_mask_%s.npy'%suffix, imgs_mask)
+    np.save('imgs_label_%s.npy'%suffix, imgs_label)
     pickle.dump(ids, open("imgs_ids_%s.pck"%suffix,"wb"))
     print('Saving to .npy files done.')
 
@@ -50,12 +58,15 @@ def create_data(images, suffix):
 def load_train_data():
     imgs_train = np.load('imgs_train.npy')
     imgs_mask_train = np.load('imgs_mask_train.npy')
-    return imgs_train, imgs_mask_train
+    imgs_label_train = np.load('imgs_label_train.npy')
+    return imgs_train, imgs_mask_train, imgs_label_train
 
 def load_test_data():
     imgs_test = np.load('imgs_test.npy')
+    imgs_mask_test = np.load('imgs_mask_test.npy')
+    imgs_label_test = np.load('imgs_label_test.npy')
     imgs_id = pickle.load(open('./imgs_ids_test.pck','rb'))
-    return imgs_test, imgs_id
+    return imgs_test, imgs_mask_test, imgs_label_test, imgs_id
 
 if __name__ == '__main__':
     images = glob.glob(os.path.join(data_path, "*4CH_ED.png"))
